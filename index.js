@@ -63,15 +63,15 @@ app.post('/api/persons', (req, res, next) => {
     .catch(error => next(error)) 
 })
 
-app.put('/api/persons/:id', (req, res, next) => {
-  const body = req.body
-
-  const person = {
-    name: body.name,
-    number: body.number,
+app.put('/api/persons/:id', async (req, res, next) => {
+  const { name, number } = req.body
+  const existing = await Person.findById(req.params.id)
+  if (!existing) {
+    return res.status(400).send({ 
+      error: `Information of ${name} has already been removed from server` 
+    })
   }
-  
-  Person.findByIdAndUpdate(req.params.id, person, { new: true })
+  Person.findByIdAndUpdate(req.params.id, { name, number }, { new: true, runValidators: true, context: 'query' })
     .then(updatedPerson => {
       res.json(updatedPerson)
     })
