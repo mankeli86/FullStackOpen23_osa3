@@ -19,9 +19,10 @@ app.get('/api/persons', (req, res) => {
   })
 })
 
-app.get('/info', (req, res) => {
+app.get('/info', async (req, res) => {
   const date = new Date()
-  res.send(`<p>Phonebook has info for ${persons.length} people</p><p>${date}</p>`)
+  const size = await Person.countDocuments({})
+  res.send(`<p>Phonebook has info for ${size} people</p><p>${date}</p>`)
 })
 
 app.get('/api/persons/:id', (req, res, next) => {
@@ -58,6 +59,21 @@ app.post('/api/persons', (req, res) => {
   person.save().then(savedPerson =>{
     res.json(savedPerson)
   }) 
+})
+
+app.put('/api/persons/:id', (req, res, next) => {
+  const body = req.body
+
+  const person = {
+    name: body.name,
+    number: body.number,
+  }
+  
+  Person.findByIdAndUpdate(req.params.id, person, { new: true })
+    .then(updatedPerson => {
+      res.json(updatedPerson)
+    })
+    .catch(error => next(error))
 })
 
 const unknownEndpoint = (request, response) => {
