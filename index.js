@@ -7,11 +7,8 @@ const Person = require('./models/person')
 app.use(express.json())
 app.use(express.static('dist'))
 
-morgan.token('body', (req, res) => JSON.stringify(req.body))
+morgan.token('body', (req) => JSON.stringify(req.body))
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
-
-let persons = [
-]
 
 app.get('/api/persons', (req, res) => {
   Person.find({}).then(persons => {
@@ -39,7 +36,7 @@ app.get('/api/persons/:id', (req, res, next) => {
 
 app.delete('/api/persons/:id', (req, res, next) => {
   Person.findByIdAndDelete(req.params.id)
-    .then(result => {
+    .then(() => {
       res.status(204).end()
     })
     .catch(error => next(error))
@@ -48,8 +45,8 @@ app.delete('/api/persons/:id', (req, res, next) => {
 app.post('/api/persons', (req, res, next) => {
   const body = req.body
   if (!body.name || !body.number) {
-    return res.status(400).json({ 
-      error: 'name or number missing' 
+    return res.status(400).json({
+      error: 'name or number missing'
     })
   }
   const person = new Person({
@@ -57,18 +54,18 @@ app.post('/api/persons', (req, res, next) => {
     number: body.number,
   })
   person.save()
-    .then(savedPerson =>{
+    .then(savedPerson => {
       res.json(savedPerson)
     })
-    .catch(error => next(error)) 
+    .catch(error => next(error))
 })
 
 app.put('/api/persons/:id', async (req, res, next) => {
   const { name, number } = req.body
   const existing = await Person.findById(req.params.id)
   if (!existing) {
-    return res.status(400).send({ 
-      error: `Information of ${name} has already been removed from server` 
+    return res.status(400).send({
+      error: `Information of ${name} has already been removed from server`
     })
   }
   Person.findByIdAndUpdate(req.params.id, { name, number }, { new: true, runValidators: true, context: 'query' })
